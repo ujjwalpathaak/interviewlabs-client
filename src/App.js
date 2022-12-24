@@ -11,8 +11,10 @@ import store from "./app/store";
 import { selectUser } from "./context/userSlice";
 import Main from "./pages/Main";
 import JoinRoomPage from "./components/Main/JoinRoomPage";
+import { useState } from "react";
 function App() {
   const user = useSelector(selectUser);
+  const [code, setCode] = useState()
   return (
     <Provider store={store}>
       {/* <JoinRoomPage /> */}
@@ -23,9 +25,9 @@ function App() {
             <Routes>
               <Route
                 path="/"
-                element={user ? <JoinRoomPage /> : <Homepage />}
+                element={user ? <JoinRoomPage setCode={setCode}/> : <Homepage />}
               />
-              <Route path="/room/:roomId" element={<Main />} />
+              <Route path="/room/:roomId" element={<Main code={code} />} />
             </Routes>
           </PeerProvider>
         </SocketProvider>

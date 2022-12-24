@@ -32,7 +32,7 @@ function Homepage() {
         <div className="bg-[#000000a1] absolute top-0 left-0 right-0 bottom-0 m-auto z-10" />
       )}
       <div className="max-h-[1080px] max-w-screen-xl ">
-        <div className="h-fit w-full flex flex-col justify-between p-6 sm:flex-row sm:h-[10%]">
+        <div className="h-[20vh] w-full flex flex-col justify-between p-6 sm:flex-row sm:h-[10%]">
           <img className="z-[2] h-12 sm:h-8" src={logo} alt="logo" />
           <div className="flex items-center">
             <div className="flex-column">
@@ -62,7 +62,7 @@ function Homepage() {
             />
           )}
         </div>
-        <div className="flex flex-col h-fit sm:flex-row sm:h-[90%]">
+        <div className="flex flex-col h-[80vh] justify-around sm:flex-row sm:h-[90%]">
           <div className=" h-fit w-[100%] flex flex-col justify-left items-start pl-4 sm:w-[40%] sm:h-[100%] sm:items-center sm:justify-center sm:pl-0">
             <div className="flex-col h-fit w-[60%] justify-center items-center sm:h-[50%] sm:tracking-tighter ">
               <span className="m-0 block text-[#393E46] font-extrabold text-[230%] z-[2]  sm:text-[350%] sm:h-14">

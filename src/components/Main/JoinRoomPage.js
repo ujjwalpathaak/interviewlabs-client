@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useSocket } from "../../providers/Socket";
 import { selectUser } from "../../context/userSlice";
 import { useSelector } from "react-redux";
-const JoinRoomPage = () => {
+const JoinRoomPage = ({setCode}) => {
   const { socket } = useSocket();
   const user = useSelector(selectUser);
   let name = user.name;
@@ -25,7 +25,7 @@ const JoinRoomPage = () => {
       return;
     }
     socket.emit("join-room", { roomId, name });
-
+    setCode(roomId)
     navigate(`/room/${roomId}`);
   };
 
