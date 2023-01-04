@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 const PeerContext = React.createContext(null);
 export const usePeer = () => React.useContext(PeerContext);
-export const PeerProvider = (props) => {
 
+export const PeerProvider = (props) => {
   const [otherStream, setOtherStream] = useState(null);
 
   const peer = useMemo(
@@ -12,6 +12,7 @@ export const PeerProvider = (props) => {
           {
             urls: [
               "stun:stun.l.google.com:19302",
+              "stun:stun2.l.google.com:19302",
               "stun:global.stun.twilio.com:3478",
             ],
           },
@@ -27,6 +28,7 @@ export const PeerProvider = (props) => {
 
   useEffect(() => {
     peer.addEventListener("track", handleTrackEvent);
+
     return () => {
       peer.removeEventListener("track", handleTrackEvent);
     };

@@ -1,10 +1,18 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "../context/userSlice";
-import roomReducer from "../context/roomSlice";
+import userReducer from "../provider/userSlice";
+// import roomRed ucer from "../context/roomSlice";
 
-export default configureStore({
+// export default configureStore({
+//   reducer: {
+//     user: userReducer,
+//     room: roomReducer
+//   },
+// });
+
+const store = configureStore({
   reducer: {
     user: userReducer,
-    room: roomReducer
-  },
+  }
 });
+
+export default store;

@@ -1,9 +1,10 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { login } from "../../context/userSlice";
 import axios from "axios";
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+import { login } from "../../provider/userSlice";
+// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_DEVELOPMENT_BACKEND_URL;
 
 const Signin = ({ handleHideSignin, handleShowSignup }) => {
   const [oldUserData, setOldUserData] = useState({
@@ -23,7 +24,6 @@ const Signin = ({ handleHideSignin, handleShowSignup }) => {
     try {
       let response = await axios.post(`${BACKEND_URL}/loginUser`, oldUserData);
       if (response.status === 200) {
-        // console.log("working")
         dispatch(
           login({
             name: response.data.name,
@@ -37,7 +37,6 @@ const Signin = ({ handleHideSignin, handleShowSignup }) => {
         window.alert("Wrong Email or Password");
       }
     } catch (error) {
-      // setCurrentUser(oldUserData);
       console.log(error, "Error in logging in user");
     }
   };

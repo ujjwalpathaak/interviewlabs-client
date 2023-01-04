@@ -1,51 +1,72 @@
-  import React, { useEffect, useCallback, useState } from "react";
-import CodeEditArea from "../components/Main/CodeEditArea";
-import { usePeer } from "../providers/Peer";
+import React, { useEffect, useCallback, useState, useContext } from "react";
 import ReactPlayer from "react-player";
-import { useSocket } from "../providers/Socket";
-const Main = ({code}) => {
-  const { socket } = useSocket();
+import { useSelector } from "react-redux";
+
+import CodeEditArea from "../components/Main/CodeEditArea";
+import { usePeer } from "../context/Peer";
+import { SocketContext } from "../context/Socket";
+import { selectUser } from "../provider/userSlice";
+
+const Main = ({ code }) => {
+  const { socket } = useContext(SocketContext);
   const [mystream, setMyStream] = useState(null);
+  const user = useSelector(selectUser);
   const [otherTempStream, setOtherTempStream] = useState(null);
   const {
     peer,
-    otherStream,
     sendStream,
+    otherStream,
     createOffer,
     createAnswer,
     setRemoteAnswer,
   } = usePeer();
 
-  const handleNewUserJoined = useCallback(
+  const handleRoomJoined = useCallback(
     async (data) => {
       const { name } = data;
-      console.log(`new user -> ${name} joined`);
       const offer = await createOffer();
-      socket.emit("call-user", { name, offer });
+      console.log(`calling -> ${name}`);
+      socket.current.emit("call-user", { name, offer });
       setOtherTempStream(name);
     },
     [createOffer, socket]
   );
+
+  const handleRoomCreated = (data) => {
+    const { roomId, name } = data;
+    console.log(`Room ${roomId} created by user -> ${name}`);
+  };
 
   const handleIncomingCall = useCallback(
     async (data) => {
       const { from, offer } = data;
       console.log(`incomming call from -> ${from}`, offer);
       const ans = await createAnswer(offer);
-      socket.emit("call-accepted", { name: from, ans });
+      socket.current.emit("call-accepted", { name: from, ans });
       setOtherTempStream(from);
     },
     [createAnswer, socket, setOtherTempStream]
   );
 
-  const handleCallAccepted = useCallback(
-    async (data) => {
-      const { ans } = data;
-      console.log("got accepted", ans);
-      await setRemoteAnswer(ans);
-    },
-    [setRemoteAnswer]
-  );
+  const handleCallAccepted = async (data) => {
+    const { ans } = data;
+    console.log("got accepted", ans);
+    await setRemoteAnswer(ans);
+  };
+
+  const handleNegoIncomingCall = async (data) => {
+    const { from, offer } = data;
+    console.log(`nego incomming call from -> ${from}`, offer);
+    const ans = await createAnswer(offer);
+    socket.current.emit("nego-call-accepted", { name: from, ans });
+    setOtherTempStream(from);
+  };
+
+  const handleNegoCallAccepted = async (data) => {
+    const { ans } = data;
+    console.log("got accepted", ans);
+    await setRemoteAnswer(ans);
+  };
 
   const getUserMediaStream = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -61,21 +82,38 @@ const Main = ({code}) => {
   }, [getUserMediaStream]);
 
   useEffect(() => {
-    socket.on("user-joined", handleNewUserJoined);
-    socket.on("incomming-call", handleIncomingCall);
-    socket.on("call-accepted", handleCallAccepted);
-
+    socket.current.on("newRoom-created", handleRoomCreated);
+    socket.current.on("newUser-joined", handleRoomJoined);
+    socket.current.on("incomming-call", handleIncomingCall);
+    socket.current.on("calling-accepted", handleCallAccepted);
+    socket.current.on("nego-incomming-call", handleNegoIncomingCall);
+    socket.current.on("nego-calling-accepted", handleNegoCallAccepted);
     return () => {
-      socket.off("user-joined", handleNewUserJoined);
-      socket.off("incomming-call", handleIncomingCall);
-      socket.off("call-accepted", handleCallAccepted);
+      socket.current.off("room-created", handleRoomCreated);
+      socket.current.off("newUser-joined", handleRoomJoined);
+      socket.current.off("incomming-call", handleIncomingCall);
+      socket.current.off("calling-accepted", handleCallAccepted);
+      socket.current.off("nego-incomming-call", handleNegoIncomingCall);
+      socket.current.off("nego-calling-accepted", handleNegoCallAccepted);
     };
-  }, [handleNewUserJoined, handleIncomingCall, handleCallAccepted, socket]);
+  }, [
+    handleNegoCallAccepted,
+    handleNegoIncomingCall,
+    handleRoomCreated,
+    handleRoomJoined,
+    handleIncomingCall,
+    handleCallAccepted,
+    socket,
+  ]);
 
-  const handleNegosiation = useCallback(() => {
-    const tempOffer = peer.localDescription;
-    socket.emit("call-user", { name: otherTempStream, offer: tempOffer });
-  }, [peer.localDescription, otherTempStream]);
+  const handleNegosiation = async () => {
+    console.log("negotiation needed");
+    const tempOffer = await peer.createOffer();
+    socket.current.emit("nego-call-user", {
+      name: otherTempStream,
+      offer: tempOffer,
+    });
+  };
 
   useEffect(() => {
     peer.addEventListener("negotiationneeded", handleNegosiation);
@@ -102,7 +140,7 @@ const Main = ({code}) => {
             <ReactPlayer
               // className="h-full w-full"
               url={otherStream}
-              width="100%"
+              width="50%"
               height="100%"
               playing
             />
@@ -111,11 +149,11 @@ const Main = ({code}) => {
         <div className="bg-[#00ADB5] h-[5%] w-[100%] flex items-center p-2 rounded-b-lg">
           <h1 className="mr-2 font-medium">Room Code: </h1>
           <span className="mr-2">{code}</span>
-          
         </div>
       </div>
       <div className="bg-[#EEEEEE] flex flex-col justify-between mt-6 sm:mt-0 w-[100%] h-[60vh] sm:h-[95vh] sm:w-[74vw]">
         <CodeEditArea />
+        {user.name} connected to {otherTempStream}
       </div>
     </div>
   );

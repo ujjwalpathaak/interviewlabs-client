@@ -1,31 +1,33 @@
-// import { useState } from "react";
-import "./App.css";
-
-import { SocketProvider } from "./providers/Socket";
-import { PeerProvider } from "./providers/Peer";
-
+import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
-import Homepage from "./pages/Homepage";
 import { Provider, useSelector } from "react-redux";
+
+import { selectUser } from "./provider/userSlice";
+import SocketProvider from "./context/Socket";
+import { PeerProvider } from "./context/Peer";
+import Homepage from "./pages/Homepage";
 import store from "./app/store";
-import { selectUser } from "./context/userSlice";
 import Main from "./pages/Main";
 import JoinRoomPage from "./components/Main/JoinRoomPage";
-import { useState } from "react";
+
+import "./App.css";
+
 function App() {
   const user = useSelector(selectUser);
-  const [code, setCode] = useState()
+
+  const [code, setCode] = useState();
+
   return (
     <Provider store={store}>
-      {/* <JoinRoomPage /> */}
-
       <div className="App">
         <SocketProvider>
           <PeerProvider>
             <Routes>
               <Route
                 path="/"
-                element={user ? <JoinRoomPage setCode={setCode}/> : <Homepage />}
+                element={
+                  user ? <JoinRoomPage setCode={setCode} /> : <Homepage />
+                }
               />
               <Route path="/room/:roomId" element={<Main code={code} />} />
             </Routes>

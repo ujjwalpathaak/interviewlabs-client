@@ -7,5 +7,5 @@ export const uniqueIdGenerator = () => {
     }
     tempNumber = tempNumber + temp + "-";
   }
-  return tempNumber = tempNumber.slice(0, -1);
+  return (tempNumber = tempNumber.slice(0, -1));
 };

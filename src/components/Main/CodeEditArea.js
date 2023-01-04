@@ -8,6 +8,9 @@ import "codemirror/addon/edit/closebrackets";
 import "./CodeEditArea.css";
 import axios from "axios";
 
+// let REACT_APP_CODE_EXECUTE_URL = process.env.REACT_APP_CODE_EXECUTE_PROD_URL
+let REACT_APP_CODE_EXECUTE_URL = process.env.REACT_APP_CODE_EXECUTE_DEV_URL
+
 const CodeEditArea = () => {
   const [code, setCode] = useState(``);
   const [result, setResult] = useState(``);
@@ -36,7 +39,7 @@ const CodeEditArea = () => {
     await axios({
       method: "post",
       // headers: { "Accept-Encoding": "gzip,deflate,compress" },
-      url: "http://localhost:8080/execute",
+      url: `${REACT_APP_CODE_EXECUTE_URL}`,
       data: {
         script: code,
       },

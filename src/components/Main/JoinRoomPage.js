@@ -1,22 +1,25 @@
-import React, { useState } from "react";
-import { uniqueIdGenerator } from "../../utils/uniqueIdGenerator";
-import illus from "../../assets/illus2.png";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../../providers/Socket";
-import { selectUser } from "../../context/userSlice";
 import { useSelector } from "react-redux";
-const JoinRoomPage = ({setCode}) => {
-  const { socket } = useSocket();
+
+import illus from "../../assets/illus2.png";
+import { uniqueIdGenerator } from "../../utils/uniqueIdGenerator";
+import { SocketContext } from "../../context/Socket";
+import { selectUser } from "../../provider/userSlice";
+
+const JoinRoomPage = ({ setCode }) => {
+  const { socket } = useContext(SocketContext);
   const user = useSelector(selectUser);
   let name = user.name;
-  // socket.emit('join-room', {roomId: '1', name: "arjun"})
   const [roomId, setRoomId] = useState();
-
   const navigate = useNavigate();
+
   const createNewRoom = () => {
     let tempRoomId = uniqueIdGenerator();
-    console.log(tempRoomId);
     setRoomId(tempRoomId);
+    socket.current.emit("newRoom-created", { roomId: tempRoomId, name });
+    setCode(tempRoomId);
+    navigate(`/room/${tempRoomId}`);
   };
 
   const joinRoom = () => {
@@ -24,8 +27,8 @@ const JoinRoomPage = ({setCode}) => {
       window.alert("Please Fill in Room Id");
       return;
     }
-    socket.emit("join-room", { roomId, name });
-    setCode(roomId)
+    socket.current.emit("join-room", { roomId, name });
+    setCode(roomId);
     navigate(`/room/${roomId}`);
   };
 
