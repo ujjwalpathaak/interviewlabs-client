@@ -25,7 +25,7 @@ const Main = ({ code }) => {
     async (data) => {
       const { name } = data;
       const offer = await createOffer();
-      console.log(`calling -> ${name}`);
+      //console.log(`calling -> ${name}`);
       socket.current.emit("call-user", { name, offer });
       setOtherTempStream(name);
     },
@@ -34,13 +34,13 @@ const Main = ({ code }) => {
 
   const handleRoomCreated = (data) => {
     const { roomId, name } = data;
-    console.log(`Room ${roomId} created by user -> ${name}`);
+    //console.log(`Room ${roomId} created by user -> ${name}`);
   };
 
   const handleIncomingCall = useCallback(
     async (data) => {
       const { from, offer } = data;
-      console.log(`incomming call from -> ${from}`, offer);
+      //console.log(`incomming call from -> ${from}`, offer);
       const ans = await createAnswer(offer);
       socket.current.emit("call-accepted", { name: from, ans });
       setOtherTempStream(from);
@@ -50,13 +50,13 @@ const Main = ({ code }) => {
 
   const handleCallAccepted = async (data) => {
     const { ans } = data;
-    console.log("got accepted", ans);
+    //console.log("got accepted", ans);
     await setRemoteAnswer(ans);
   };
 
   const handleNegoIncomingCall = async (data) => {
     const { from, offer } = data;
-    console.log(`nego incomming call from -> ${from}`, offer);
+    //console.log(`nego incomming call from -> ${from}`, offer);
     const ans = await createAnswer(offer);
     socket.current.emit("nego-call-accepted", { name: from, ans });
     setOtherTempStream(from);
@@ -64,7 +64,7 @@ const Main = ({ code }) => {
 
   const handleNegoCallAccepted = async (data) => {
     const { ans } = data;
-    console.log("got accepted", ans);
+    //console.log("got accepted", ans);
     await setRemoteAnswer(ans);
   };
 
@@ -107,7 +107,7 @@ const Main = ({ code }) => {
   ]);
 
   const handleNegosiation = async () => {
-    console.log("negotiation needed");
+    //console.log("negotiation needed");
     const tempOffer = await peer.createOffer();
     socket.current.emit("nego-call-user", {
       name: otherTempStream,
