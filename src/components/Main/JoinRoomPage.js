@@ -1,23 +1,50 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+import { createdRoom, joinedRoom } from "../../provider/roomSlice";
 import illus from "../../assets/illus2.png";
 import { uniqueIdGenerator } from "../../utils/uniqueIdGenerator";
 import { SocketContext } from "../../context/Socket";
 import { selectUser } from "../../provider/userSlice";
-
+import { selectRoom } from "../../provider/roomSlice";
+import { usePeer } from "../../context/Peer";
+import { createRoom, joinRoom, getRoom } from "../../service/roomApi";
+ 
 const JoinRoomPage = ({ setCode }) => {
   const { socket } = useContext(SocketContext);
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  let name = user.name;
+  const room = useSelector(selectRoom);
   const [roomId, setRoomId] = useState();
+  const [data, setData] = useState({});
+  const [userId, setUserId] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    socket.current.emit("get-me", {});
+    socket.current.on("me", (id) => {
+      setUserId(id)
+    });
+  }, []);
 
   const createNewRoom = () => {
     let tempRoomId = uniqueIdGenerator();
     setRoomId(tempRoomId);
-    socket.current.emit("newRoom-created", { roomId: tempRoomId, name });
+    dispatch(
+      createdRoom({
+        id: tempRoomId,
+        owner: user.name,
+      })
+    );
+    setData({
+      roomId: tempRoomId,
+      owner: user.name,
+      ownerId: userId,
+    })
+    console.log(data)
+    createRoom(data);
     setCode(tempRoomId);
     navigate(`/room/${tempRoomId}`);
   };
@@ -27,7 +54,17 @@ const JoinRoomPage = ({ setCode }) => {
       window.alert("Please Fill in Room Id");
       return;
     }
-    socket.current.emit("join-room", { roomId, name });
+    // dispatch(
+    //   joinedRoom({
+    //     joiner: user.name,
+    //   })
+    // );
+    let data2 = {
+      roomId: roomId,
+      joiner: user.name,
+      joinerId: userId,
+    };
+    joinRoom(data2);
     setCode(roomId);
     navigate(`/room/${roomId}`);
   };
