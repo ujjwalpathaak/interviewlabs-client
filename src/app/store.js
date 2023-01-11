@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "../provider/userSlice";
-// import roomRed ucer from "../context/roomSlice";
+import roomReducer from "../provider/roomSlice";
 
 // export default configureStore({
 //   reducer: {
@@ -12,6 +12,7 @@ import userReducer from "../provider/userSlice";
 const store = configureStore({
   reducer: {
     user: userReducer,
+    room: roomReducer,
   }
 });
 
