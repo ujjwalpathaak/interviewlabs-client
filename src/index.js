@@ -8,6 +8,7 @@ import { Provider } from "react-redux";
 
 import "./index.css";
 import SocketProvider from "./context/Socket";
+import { PeerProvider } from "./context/Peer";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -15,7 +16,9 @@ root.render(
   <BrowserRouter>
     <Provider store={store}>
       <SocketProvider>
-        <App />
+        <PeerProvider>
+          <App />
+        </PeerProvider>
       </SocketProvider>
     </Provider>
   </BrowserRouter>

@@ -9,14 +9,15 @@ import "./CodeEditArea.css";
 import axios from "axios";
 
 // let REACT_APP_CODE_EXECUTE_URL = process.env.REACT_APP_CODE_EXECUTE_PROD_URL
-let REACT_APP_CODE_EXECUTE_URL = process.env.REACT_APP_CODE_EXECUTE_DEV_URL
+let REACT_APP_CODE_EXECUTE_URL = process.env.REACT_APP_CODE_EXECUTE_DEV_URL;
 
 const CodeEditArea = () => {
   const [code, setCode] = useState(``);
   const [result, setResult] = useState(``);
   const editorRef = useRef(null);
+
   useEffect(() => {
-    async function init() {
+    const init = () => {
       editorRef.current = Codemirror.fromTextArea(
         document.getElementById("codeEditor2"),
         {
@@ -31,7 +32,7 @@ const CodeEditArea = () => {
         const code = instance.getValue();
         setCode(code);
       });
-    }
+    };
     init();
   }, []);
 
@@ -44,6 +45,7 @@ const CodeEditArea = () => {
         script: code,
       },
     }).then((response) => {
+      // console.log(response)
       setResult(response.data);
     });
   };

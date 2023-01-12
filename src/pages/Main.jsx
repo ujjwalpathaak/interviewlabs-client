@@ -9,6 +9,7 @@ import { selectUser } from "../provider/userSlice";
 
 const Main = ({ code }) => {
   const { socket } = useContext(SocketContext);
+  
   const [mystream, setMyStream] = useState(null);
   const user = useSelector(selectUser);
   const [otherTempStream, setOtherTempStream] = useState(null);
@@ -32,10 +33,10 @@ const Main = ({ code }) => {
     [createOffer, socket]
   );
 
-  const handleRoomCreated = (data) => {
+  const handleRoomCreated = useCallback((data) => {
     const { roomId, name } = data;
     console.log(`Room ${roomId} created by user -> ${name}`);
-  };
+  }, []);
 
   const handleIncomingCall = useCallback(
     async (data) => {
@@ -48,25 +49,34 @@ const Main = ({ code }) => {
     [createAnswer, socket, setOtherTempStream]
   );
 
-  const handleCallAccepted = async (data) => {
-    const { ans } = data;
-    console.log("got accepted", ans);
-    await setRemoteAnswer(ans);
-  };
+  const handleCallAccepted = useCallback(
+    async (data) => {
+      const { ans } = data;
+      console.log("got accepted", ans);
+      await setRemoteAnswer(ans);
+    },
+    [setRemoteAnswer]
+  );
 
-  const handleNegoIncomingCall = async (data) => {
-    const { from, offer } = data;
-    console.log(`nego incomming call from -> ${from}`, offer);
-    const ans = await createAnswer(offer);
-    socket.current.emit("nego-call-accepted", { name: from, ans });
-    setOtherTempStream(from);
-  };
+  const handleNegoIncomingCall = useCallback(
+    async (data) => {
+      const { from, offer } = data;
+      console.log(`nego incomming call from -> ${from}`, offer);
+      const ans = await createAnswer(offer);
+      socket.current.emit("nego-call-accepted", { name: from, ans });
+      setOtherTempStream(from);
+    },
+    [createAnswer, socket, setOtherTempStream]
+  );
 
-  const handleNegoCallAccepted = async (data) => {
-    const { ans } = data;
-    console.log("got accepted", ans);
-    await setRemoteAnswer(ans);
-  };
+  const handleNegoCallAccepted = useCallback(
+    async (data) => {
+      const { ans } = data;
+      console.log("got accepted", ans);
+      await setRemoteAnswer(ans);
+    },
+    [setRemoteAnswer]
+  );
 
   const getUserMediaStream = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -88,14 +98,14 @@ const Main = ({ code }) => {
     socket.current.on("calling-accepted", handleCallAccepted);
     socket.current.on("nego-incomming-call", handleNegoIncomingCall);
     socket.current.on("nego-calling-accepted", handleNegoCallAccepted);
-    return () => {
-      socket.current.off("room-created", handleRoomCreated);
-      socket.current.off("newUser-joined", handleRoomJoined);
-      socket.current.off("incomming-call", handleIncomingCall);
-      socket.current.off("calling-accepted", handleCallAccepted);
-      socket.current.off("nego-incomming-call", handleNegoIncomingCall);
-      socket.current.off("nego-calling-accepted", handleNegoCallAccepted);
-    };
+    // return () => {
+      // socket.current.off("room-created", handleRoomCreated);
+      // socket.current.off("newUser-joined", handleRoomJoined);
+      // socket.current.off("incomming-call", handleIncomingCall);
+      // socket.current.off("calling-accepted", handleCallAccepted);
+      // socket.current.off("nego-incomming-call", handleNegoIncomingCall);
+      // socket.current.off("nego-calling-accepted", handleNegoCallAccepted);
+    // };
   }, [
     handleNegoCallAccepted,
     handleNegoIncomingCall,
@@ -106,21 +116,21 @@ const Main = ({ code }) => {
     socket,
   ]);
 
-  const handleNegosiation = async () => {
+  const handleNegosiation = useCallback(async () => {
     console.log("negotiation needed");
     const tempOffer = await peer.createOffer();
     socket.current.emit("nego-call-user", {
       name: otherTempStream,
       offer: tempOffer,
     });
-  };
+  }, [socket, peer, otherTempStream]);
 
   useEffect(() => {
     peer.addEventListener("negotiationneeded", handleNegosiation);
     return () => {
       peer.removeEventListener("negotiationneeded", handleNegosiation);
     };
-  }, [handleNegosiation, socket]);
+  }, [handleNegosiation, socket, peer]);
 
   return (
     <div className="bg-[#EEEEEE] w-[100vw] h-[100vh] flex flex-col sm:justify-around items-center sm:p-2 sm:flex-row">
@@ -140,7 +150,7 @@ const Main = ({ code }) => {
             <ReactPlayer
               // className="h-full w-full"
               url={otherStream}
-              width="50%"
+              width="100%"
               height="100%"
               playing
             />

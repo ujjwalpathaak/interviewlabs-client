@@ -7,8 +7,8 @@ export const SocketContext = createContext(null);
 const SOCKET_URL = "http://localhost:9000"
 
 const SocketProvider = ({ children }) => {
-
   const socket = useRef();
+  
   useEffect(() => {
     socket.current = io(`${SOCKET_URL}`);
   }, []);
