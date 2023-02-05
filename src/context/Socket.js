@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useRef } from "react";
+import React, { createContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 export const SocketContext = createContext(null);
@@ -8,15 +8,22 @@ const SOCKET_URL = "http://localhost:9000"
 
 const SocketProvider = ({ children }) => {
   const socket = useRef();
-  
+
+  const [socketId, setSocketId] = useState()
+
   useEffect(() => {
     socket.current = io(`${SOCKET_URL}`);
+    socket.current.on("me", (id) => {
+      console.log(id)
+      setSocketId(id);
+    });
   }, []);
 
   return (
     <SocketContext.Provider
       value={{
         socket,
+        socketId
       }}
     >
       {children}

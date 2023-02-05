@@ -1,35 +1,133 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-
-import illus from "../../assets/illus2.png";
+import { usePeer } from "../../context/Peer";
 import { uniqueIdGenerator } from "../../utils/uniqueIdGenerator";
 import { SocketContext } from "../../context/Socket";
 import { selectUser } from "../../provider/userSlice";
+import axios from "axios";
+import Peer from "simple-peer";
+// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_DEVELOPMENT_BACKEND_URL;
 
 const JoinRoomPage = ({ setCode }) => {
-  const { socket } = useContext(SocketContext);
+  const { socket, socketId } = useContext(SocketContext);
   const user = useSelector(selectUser);
   let name = user.name;
   const [roomId, setRoomId] = useState();
   const navigate = useNavigate();
 
-  const createNewRoom = () => {
+  const {
+    me,
+    setMe,
+    stream,
+    setStream,
+    receivingCall,
+    setReceivingCall,
+    caller,
+    setCaller,
+    callerSignal,
+    setCallerSignal,
+    callAccepted,
+    setCallAccepted,
+    idToCall,
+    setIdToCall,
+    callEnded,
+    setCallEnded,
+    // name,
+    // setName,
+    myVideo,
+    userVideo,
+    connectionRef,
+  } = usePeer();
+
+  useEffect(() => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        setStream(stream);
+        myVideo.current.srcObject = stream;
+      });
+    setMe(socketId);
+  }, []);
+
+  const createNewRoom = async () => {
     let tempRoomId = uniqueIdGenerator();
     setRoomId(tempRoomId);
-    socket.current.emit("newRoom-created", { roomId: tempRoomId, name });
+    const newRoomDataTemplate = {
+      roomId: tempRoomId,
+      owner: name,
+      ownerId: user._id,
+      ownerSocketId: socketId || "temp",
+    };
+    let newRoomData = await axios.post(
+      `${BACKEND_URL}/createRoom`,
+      newRoomDataTemplate
+    );
+    // console.log(newRoomData);
     setCode(tempRoomId);
     navigate(`/room/${tempRoomId}`);
   };
 
-  const joinRoom = () => {
+  const callUser = (id) => {
+    console.log("call user");
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream: stream,
+    });
+    peer.on("signal", (data) => {
+      socket.current.emit("callUser", {
+        userToCall: id,
+        signalData: data,
+        from: me,
+        name: name,
+      });
+    });
+    peer.on("stream", (stream) => {
+      userVideo.current.srcObject = stream;
+    });
+    socket.current.on("callAccepted", (signal) => {
+      setCallAccepted(true);
+      peer.signal(signal);
+    });
+    connectionRef.current = peer;
+  };
+
+  const joinRoom = async () => {
     if (!roomId) {
       window.alert("Please Fill in Room Id");
       return;
     }
-    socket.current.emit("join-room", { roomId, name });
-    setCode(roomId);
-    navigate(`/room/${roomId}`);
+    const oldRoomDataTemplate = {
+      roomId: roomId,
+      joiner: name,
+      joinerId: user._id,
+    };
+    const oldRoomId = {
+      roomId: roomId,
+    };
+    let ownerSocketId = await axios.post(
+      `${BACKEND_URL}/getSocketId`,
+      oldRoomId
+    );
+    // console.log(ownerSocketId.ownerSocketId);
+    console.log(ownerSocketId.data);
+    callUser(ownerSocketId.data);
+
+    // add
+
+    await axios.post(`${BACKEND_URL}/joinRoom`, oldRoomDataTemplate).then(
+      (response) => {
+        console.log(response);
+        setCode(roomId);
+        navigate(`/room/${roomId}`);
+      },
+      (error) => {
+        window.alert("Room not found");
+        console.log("Room already exists -> " + error);
+      }
+    );
   };
 
   const handleEnterKey = (e) => {
@@ -40,13 +138,10 @@ const JoinRoomPage = ({ setCode }) => {
 
   return (
     <div className="absolute z-[2] w-[100%] h-[100%] bg-[#EEEEEE] flex justify-center items-center flex-col sm:flex-row">
-      <div className="w-[100%] h-[100%] flex justify-center items-center sm:w-[50%] sm:h-[100%] ">
-        <img className="w-[100%]" src={illus} alt="illus" />
-      </div>
-      <div className="w-[50%] h-[100%] flex flex-col justify-center items-center">
+      <div className="w-[60%] h-[100%] flex flex-col justify-center items-center">
         <button
           onClick={createNewRoom}
-          className="text-2xl m-2 mb-7 bg-transparent hover:bg-[#00ADB5] text-[#00ADB5] font-semibold hover:text-white py-2 px-4 border border-[#00ADB5] hover:border-transparent rounded-full"
+          className="text-3xl m-2 mb-7 bg-transparent hover:bg-[#00ADB5] text-[#00ADB5] font-semibold hover:text-white py-2 px-4 border border-[#00ADB5] hover:border-transparent rounded-full"
         >
           New Session
         </button>
@@ -58,7 +153,7 @@ const JoinRoomPage = ({ setCode }) => {
           w-10%
           px-3
           py-1.5
-          text-base
+          text-xl
           font-normal
           text-[#393E46]
           bg-white bg-clip-padding
@@ -77,10 +172,17 @@ const JoinRoomPage = ({ setCode }) => {
         />
         <button
           onClick={joinRoom}
-          className="text-xl m-2 bg-transparent hover:bg-[#00ADB5] text-[#00ADB5] font-semibold hover:text-white py-2 px-4 border border-[#00ADB5] hover:border-transparent rounded-full"
+          className="text-3xl m-2 bg-transparent hover:bg-[#00ADB5] text-[#00ADB5] font-semibold hover:text-white py-2 px-4 border border-[#00ADB5] hover:border-transparent rounded-full"
         >
           Join Session
         </button>
+        <video
+          playsInline
+          muted
+          ref={myVideo}
+          autoPlay
+          style={{ width: "300px" }}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import { login } from "../../provider/userSlice";
 // const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -18,20 +19,23 @@ const Signin = ({ handleHideSignin, handleShowSignup }) => {
   };
 
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       let response = await axios.post(`${BACKEND_URL}/loginUser`, oldUserData);
       if (response.status === 200) {
+        console.log(response.data);
         dispatch(
           login({
+            _id: response.data._id,
             name: response.data.name,
             email: response.data.email,
             password: response.data.password,
             loggedIn: true,
           })
         );
+        navigate(`/newRoom`);
       }
       if (response.status === 201) {
         window.alert("Wrong Email or Password");
@@ -68,6 +72,14 @@ const Signin = ({ handleHideSignin, handleShowSignup }) => {
             />
           </svg>
         </button>
+      </div>
+      <div className="">
+        <span className="block">
+          <span className="font-bold">Username:</span> guest@gmail.com
+        </span>
+        <span className="block">
+          <span className="font-bold">Password:</span> guest123
+        </span>
       </div>
       <div className="p-4">
         <form className="w-[100%] min-w-[100%]">
