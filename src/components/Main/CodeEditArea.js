@@ -2,13 +2,13 @@ import React, { useEffect, useState, useRef } from "react";
 
 import Editor from "@monaco-editor/react";
 
-import Codemirror from "codemirror";
-import "codemirror/lib/codemirror.css";
-import "codemirror/mode/clike/clike";
-import "codemirror/theme/dracula.css";
-import "codemirror/addon/edit/closetag";
-import "codemirror/addon/edit/closebrackets";
-import "./CodeEditArea.css";
+// import Codemirror from "codemirror";
+// import "codemirror/lib/codemirror.css";
+// import "codemirror/mode/clike/clike";
+// import "codemirror/theme/dracula.css";
+// import "codemirror/addon/edit/closetag";
+// import "codemirror/addon/edit/closebrackets";
+// import "./CodeEditArea.css";
 import axios from "axios";
 
 // let REACT_APP_CODE_EXECUTE_URL = process.env.REACT_APP_CODE_EXECUTE_PROD_URL

@@ -86,7 +86,6 @@ const Main = ({ code }) => {
                   style={{ width: "100%" }}
                 />
               )}
-              // {/* </div> */}
             </div>
             <p className="font-medium text-slate-100 m-2">{user.name}</p>
           </div>
